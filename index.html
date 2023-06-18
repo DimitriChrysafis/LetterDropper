@@ -73,195 +73,194 @@
     </style>
 </head>
 <body>
-    <div class="input-container" id="input-container">
-        <input type="text" id="input-text" placeholder="Enter your text" />
-        <button id="start-button">Start</button>
-    </div>
+<div class="input-container" id="input-container">
+    <input type="text" id="input-text" placeholder="Enter your text" />
+    <button id="start-button">Start</button>
+</div>
 
-    <canvas id="canvas"></canvas>
+<canvas id="canvas"></canvas>
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const letterSize = 30;
-        const gravity = 0.5;
-        const friction = 0.99;
-        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff'];
-        const objects = [];
-        let balls = [];
-        let animationStarted = false;
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const letterSize = 30;
+    const gravity = 0.5;
+    const friction = 0.99;
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff'];
+    const objects = [];
+    let balls = [];
+    let animationStarted = false;
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        function getRandomColor() {
-            return colors[Math.floor(Math.random() * colors.length)];
+    function getRandomColor() {
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function getRandomPosition() {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        return { x, y };
+    }
+
+    function Object(x, y, size, speed, targetX, targetY) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.speed = speed;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.angle = Math.atan2(targetY - y, targetX - x);
+    }
+
+    Object.prototype.update = function() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+
+        if (
+            Math.abs(this.x - this.targetX) < this.speed &&
+            Math.abs(this.y - this.targetY) < this.speed
+        ) {
+            const newTarget = getRandomPosition();
+            this.targetX = newTarget.x;
+            this.targetY = newTarget.y;
+            this.angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
         }
+    };
 
-        function getRandomPosition() {
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
-            return { x, y };
-        }
+    Object.prototype.draw = function() {
+        const halfSize = this.size / 2;
+        ctx.beginPath();
+        ctx.moveTo(this.x - halfSize, this.y);
+        ctx.lineTo(this.x + halfSize, this.y - halfSize);
+        ctx.lineTo(this.x + halfSize, this.y + halfSize);
+        ctx.lineTo(this.x - halfSize, this.y);
+        ctx.closePath();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    };
 
-        function Object(x, y, size, speed, targetX, targetY) {
-            this.x = x;
-            this.y = y;
-            this.size = size;
-            this.speed = speed;
-            this.targetX = targetX;
-            this.targetY = targetY;
-            this.angle = Math.atan2(targetY - y, targetX - x);
-        }
+    function Ball(x, y, dx, dy, letter, color) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.letter = letter;
+        this.color = color;
+    }
 
-        Object.prototype.update = function() {
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
+    Ball.prototype.update = function() {
+        let collided = false;
 
-            if (
-                Math.abs(this.x - this.targetX) < this.speed &&
-                Math.abs(this.y - this.targetY) < this.speed
-            ) {
-                const newTarget = getRandomPosition();
-                this.targetX = newTarget.x;
-                this.targetY = newTarget.y;
-                this.angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
-            }
-        };
+        for (let i = 0; i < objects.length; i++) {
+            const obj = objects[i];
+            const distX = this.x - obj.x;
+            const distY = this.y - obj.y;
+            const distance = Math.sqrt(distX * distX + distY * distY);
 
-        Object.prototype.draw = function() {
-            const halfSize = this.size / 2;
-            ctx.beginPath();
-            ctx.moveTo(this.x - halfSize, this.y);
-            ctx.lineTo(this.x + halfSize, this.y - halfSize);
-            ctx.lineTo(this.x + halfSize, this.y + halfSize);
-            ctx.lineTo(this.x - halfSize, this.y);
-            ctx.closePath();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        };
+            if (distance < obj.size + letterSize) {
+                const angle = Math.atan2(distY, distX);
+                this.dx += Math.cos(angle) * 5;
+                this.dy += Math.sin(angle) * 5;
 
-        function Ball(x, y, dx, dy, letter, color) {
-            this.x = x;
-            this.y = y;
-            this.dx = dx;
-            this.dy = dy;
-            this.letter = letter;
-            this.color = color;
-        }
+                // Make the ball bounce upward in a random direction
+                const randomAngle = Math.random() * Math.PI * 2;
+                this.dx = Math.cos(randomAngle) * Math.abs(this.dx);
+                this.dy = -Math.abs(this.dy);
 
-        Ball.prototype.update = function() {
-            let collided = false;
-
-            for (let i = 0; i < objects.length; i++) {
-                const obj = objects[i];
-                const distX = this.x - obj.x;
-                const distY = this.y - obj.y;
-                const distance = Math.sqrt(distX * distX + distY * distY);
-
-                if (distance < obj.size + letterSize) {
-                    const angle = Math.atan2(distY, distX);
-                    this.dx += Math.cos(angle) * 5;
-                    this.dy += Math.sin(angle) * 5;
-
-                    // Make the ball go flying in a random direction
-                    const randomAngle = Math.random() * Math.PI * 2;
-                    this.dx += Math.cos(randomAngle) * 15;
-                    this.dy += Math.sin(randomAngle) * 15;
-
-                    collided = true;
-                }
-            }
-
-            if (!collided) {
-                if (this.y + letterSize + this.dy > canvas.height || this.y + this.dy < 0) {
-                    this.dy = -this.dy * friction;
-                } else {
-                    this.dy += gravity;
-                }
-
-                if (this.x + letterSize + this.dx > canvas.width || this.x + this.dx < 0) {
-                    this.dx = -this.dx;
-                }
-            }
-
-            // Limit the speed of the ball
-            const currentSpeed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
-            const maxSpeed = 10; // Maximum allowed speed for particles
-            if (currentSpeed > maxSpeed) {
-                const ratio = maxSpeed / currentSpeed;
-                this.dx *= ratio;
-                this.dy *= ratio;
-            }
-
-            this.x += this.dx;
-            this.y += this.dy;
-        };
-
-        Ball.prototype.draw = function() {
-            ctx.font = letterSize + 'px Arial';
-            ctx.fillStyle = this.color;
-            ctx.fillText(this.letter, this.x, this.y);
-        };
-
-        document.getElementById('start-button').addEventListener('click', function() {
-            const inputText = document.getElementById('input-text').value;
-
-            if (inputText && !animationStarted) {
-                balls = [];
-                animationStarted = true;
-
-                const startX = (canvas.width - letterSize * inputText.length) / 2;
-                const startY = canvas.height / 2;
-
-                for (let i = 0; i < inputText.length; i++) {
-                    const x = startX + letterSize * i;
-                    const y = startY;
-                    const dx = 0;
-                    const dy = 0;
-                    const color = getRandomColor();
-                    balls.push(new Ball(x, y, dx, dy, inputText[i], color));
-                }
-
-                for (let i = 0; i < 50; i++) {
-                    const position = getRandomPosition();
-                    const size = Math.random() * 10 + 5;
-                    const speed = Math.random() * 2 + 1;
-                    const target = getRandomPosition();
-                    objects.push(new Object(position.x, position.y, size, speed, target.x, target.y));
-                }
-
-                document.getElementById('input-container').classList.add('hidden');
-                startBouncing();
-            }
-        });
-
-        function startBouncing() {
-            for (let i = 0; i < balls.length; i++) {
-                balls[i].dx = (Math.random() - 0.5) * 4;
-                balls[i].dy = (Math.random() - 0.5) * 4;
+                collided = true;
             }
         }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < objects.length; i++) {
-                objects[i].update();
-                objects[i].draw();
+        if (!collided) {
+            if (this.y + letterSize + this.dy > canvas.height || this.y + this.dy < 0) {
+                this.dy = -this.dy * friction;
+            } else {
+                this.dy += gravity;
             }
 
-            for (let i = 0; i < balls.length; i++) {
-                balls[i].update();
-                balls[i].draw();
+            if (this.x + letterSize + this.dx > canvas.width || this.x + this.dx < 0) {
+                this.dx = -this.dx;
             }
-
-            requestAnimationFrame(animate);
         }
 
-        animate();
-    </script>
+        // Limit the speed of the ball
+        const currentSpeed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+        const maxSpeed = 10; // Maximum allowed speed for particles
+        if (currentSpeed > maxSpeed) {
+            const ratio = maxSpeed / currentSpeed;
+            this.dx *= ratio;
+            this.dy *= ratio;
+        }
+
+        this.x += this.dx;
+        this.y += this.dy;
+    };
+
+    Ball.prototype.draw = function() {
+        ctx.font = letterSize + 'px Arial';
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.letter, this.x, this.y);
+    };
+
+    document.getElementById('start-button').addEventListener('click', function() {
+        const inputText = document.getElementById('input-text').value;
+
+        if (inputText && !animationStarted) {
+            balls = [];
+            animationStarted = true;
+
+            const startX = (canvas.width - letterSize * inputText.length) / 2;
+            const startY = canvas.height / 2;
+
+            for (let i = 0; i < inputText.length; i++) {
+                const x = startX + letterSize * i;
+                const y = startY;
+                const dx = 0;
+                const dy = 0;
+                const color = getRandomColor();
+                balls.push(new Ball(x, y, dx, dy, inputText[i], color));
+            }
+
+            for (let i = 0; i < 50; i++) {
+                const position = getRandomPosition();
+                const size = Math.random() * 10 + 5;
+                const speed = Math.random() * 2 + 1;
+                const target = getRandomPosition();
+                objects.push(new Object(position.x, position.y, size, speed, target.x, target.y));
+            }
+
+            document.getElementById('input-container').classList.add('hidden');
+            startBouncing();
+        }
+    });
+
+    function startBouncing() {
+        for (let i = 0; i < balls.length; i++) {
+            balls[i].dx = (Math.random() - 0.5) * 4;
+            balls[i].dy = (Math.random() - 0.5) * 4;
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < objects.length; i++) {
+            objects[i].update();
+            objects[i].draw();
+        }
+
+        for (let i = 0; i < balls.length; i++) {
+            balls[i].update();
+            balls[i].draw();
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
 </body>
 </html>
-
