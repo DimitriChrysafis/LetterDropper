@@ -1,3 +1,3 @@
 # LetterDropper
 Letter Dropper
-![pls help example](http://i.imgur.com/nMcOsHM.gif "Help me Melmsiwan-Kenobi, you're my only hope!")
+![pls help example]([http://i.imgur.com/nMcOsHM.gif](https://i.imgur.com/8M5yRNY.mp4) "Help me Melmsiwan-Kenobi, you're my only hope!")
