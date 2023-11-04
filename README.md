@@ -11,6 +11,6 @@ To get started with Letter Dropper, follow these simple steps:
 **Clone or download the repository:**
 
    ```bash
-   git clone https://github.com/your-username/letter-dropper.git
+   git clone https://github.com/dchrysafi/letter-dropper.git
    ```
 
