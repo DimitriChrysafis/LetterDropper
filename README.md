@@ -1,3 +1,16 @@
-# LetterDropper
-Animation to drop letters when you type them in (they bounce off objects)
-![pls help example]([http://i.imgur.com/nMcOsHM.gif](https://i.imgur.com/8M5yRNY.mp4) "Help me Melmsiwan-Kenobi, you're my only hope!")
+# Letter Dropper
+
+![Letter Dropper Example](example.gif)
+
+Drops letter ssuper cool!
+
+## Getting Started
+
+To get started with Letter Dropper, follow these simple steps:
+
+**Clone or download the repository:**
+
+   ```bash
+   git clone https://github.com/your-username/letter-dropper.git
+   ```
+
